@@ -1,0 +1,34 @@
+server:
+    port: 9000
+spring:
+    application:
+        name: API-GATEWAY-SERVICE
+    cloud:
+        consul:
+            config:
+                enabled: true
+            discovery:
+                instance-id: ${spring.application.name}:${random.value}
+                prefer-ip-address: true
+            host: localhost
+            port: 7200
+        gateway:
+            routes:
+                - id: INVENTORY-SERVICE
+                  uri: lb://INVENTORY-SERVICE
+                  predicates:
+                      - Path=/api/inventory/**
+
+                - id: ORDER-SERVICE
+                  uri: lb://ORDER-SERVICE
+                  predicates:
+                      - Path=/api/order/**
+
+                - id: PRODUCT-SERVICE-DEV
+                  uri: lb://PRODUCT-SERVICE-DEV
+                  predicates:
+                      - Path=/api/product/**
+    config:
+        import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/dev-config
+
+

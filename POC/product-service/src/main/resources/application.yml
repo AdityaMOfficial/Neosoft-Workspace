@@ -1,0 +1,32 @@
+spring:
+    application:
+        name: ${PRODUCT_SERVICE_APPLICATION_NAME}
+    profiles:
+        active: dev
+    data:
+        mongodb:
+            uri: mongodb://localhost:27017/product-service
+
+    cloud:
+        consul:
+            config:
+                enabled: true
+            discovery:
+                instance-id: ${spring.application.name}:${random.value}
+                prefer-ip-address: true
+            host: ${CONSUL_HOST:localhost}
+            port: ${CONSUL_PORT:7200}
+
+---
+spring:
+    config:
+        activate:
+            on-profile: default
+        import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/local-config
+
+---
+spring:
+    config:
+        activate:
+            on-profile: dev
+        import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/dev-config

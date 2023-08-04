@@ -1,5 +1,6 @@
 package com.programmingmicroservice.orderservice.service;
 
+import com.programmingmicroservice.orderservice.dtos.InventoryResponse;
 import com.programmingmicroservice.orderservice.dtos.OrderLineItemsDto;
 import com.programmingmicroservice.orderservice.dtos.OrderRequest;
 import com.programmingmicroservice.orderservice.dtos.OrderResponse;
@@ -7,19 +8,29 @@ import com.programmingmicroservice.orderservice.model.Order;
 import com.programmingmicroservice.orderservice.model.OrderLineItems;
 import com.programmingmicroservice.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.XSlf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
 
+import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
+
+    private final WebClient webClient;
 
     public void placeOrder(OrderRequest orderRequest){
         Order order = new Order();
@@ -28,13 +39,38 @@ public class OrderService {
                 orderLineItemsDto -> {
                     return OrderLineItems.builder()
                             .price(orderLineItemsDto.getPrice())
-                            .skuCode(orderLineItemsDto.getSkuCode())
+                            .skuCode(orderLineItemsDto.getSkuCode().replace(" ","_").toLowerCase(Locale.ROOT))
                             .quantity(orderLineItemsDto.getQuantity())
                             .build();
                 }
         ).collect(Collectors.toList());
         order.setOrderLineItemsList(orderLineItemsList);
-        orderRepository.save(order);
+        //call inventory service and place order if order is in stock.
+
+        List<String> skuCodes = order.getOrderLineItemsList().stream()
+                .map(orderLineItems -> orderLineItems.getSkuCode()).collect(Collectors.toList());
+
+
+        InventoryResponse[] inventoryResponses = webClient.get()
+                .uri("http://localhost:8082/api/inventory",
+                        uriBuilder -> {
+                            URI builtURI = uriBuilder.queryParam("skuCode", skuCodes).build();
+                            log.info("Web-client uri {}",builtURI.toString());
+                            return builtURI;
+                })
+                .retrieve()
+                .bodyToMono(InventoryResponse[].class)
+                .block();
+
+        log.info("Inventory Response List {}",inventoryResponses);
+
+        boolean allProductsInStock = Arrays.stream(inventoryResponses)
+                .allMatch(InventoryResponse::getIsInStock);
+
+        if(allProductsInStock)
+            orderRepository.save(order);
+        else
+            throw new IllegalArgumentException("Product is not in stock");
     }
 
     public List<OrderResponse> getAllOrders(){
