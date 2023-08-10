@@ -6,6 +6,7 @@ import com.programmingmicro.productservice.model.Product;
 import com.programmingmicro.productservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,8 +25,17 @@ public class ProductController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('client_user')")
     @ResponseStatus(HttpStatus.OK)
     public List<ProductResponse> getAllProducts(){
+        return productService.getAllProducts();
+    }
+
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('client_admin')")
+    @ResponseStatus(HttpStatus.OK)
+    public List<ProductResponse> getAllProducts2(){
         return productService.getAllProducts();
     }
 

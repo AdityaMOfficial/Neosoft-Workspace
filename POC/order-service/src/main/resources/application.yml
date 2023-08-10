@@ -1,12 +1,8 @@
+server:
+    port: 8081
 spring:
     application:
-        name: ${PRODUCT_SERVICE_APPLICATION_NAME}
-    profiles:
-        active: default
-    data:
-        mongodb:
-            uri: mongodb://localhost:27017/product-service
-
+        name: ORDER-SERVICE
     cloud:
         consul:
             config:
@@ -14,8 +10,19 @@ spring:
             discovery:
                 instance-id: ${spring.application.name}:${random.value}
                 prefer-ip-address: true
-            host: ${CONSUL_HOST:localhost}
-            port: ${CONSUL_PORT:7200}
+            host: localhost
+            port: 7200
+    config:
+        import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/dev-config
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        password: test@1234
+        url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/order_service
+        username: root
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
     security:
         oauth2:
 #            client:
@@ -30,10 +37,7 @@ spring:
 #                        redirectUri: http://localhost:9000/login/oauth2/code/my-client
 #                        scope:
 #                            - openid
-#                            - profile
-#                            - email
 #                            - roles
-#                            - offline_access
             resourceserver:
                 jwt:
                     issuer-uri: http://localhost:7800/realms/poc-realm
@@ -43,17 +47,3 @@ spring:
                     client-secret: TGyd7N71m6iDpkeh78rQ178pqZE8bm6U
                     introspection-uri: http://localhost:7800/realms/poc-realm/protocol/openid-connect/token/introspect
 
-
----
-spring:
-    config:
-        activate:
-            on-profile: default
-        import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/local-config
-
----
-spring:
-    config:
-        activate:
-            on-profile: dev
-        import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/dev-config

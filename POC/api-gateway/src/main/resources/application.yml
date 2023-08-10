@@ -22,13 +22,47 @@ spring:
                 - id: ORDER-SERVICE
                   uri: lb://ORDER-SERVICE
                   predicates:
-                      - Path=/api/order/**
+                        - Path=/api/order/**
 
                 - id: PRODUCT-SERVICE-DEV
-                  uri: lb://PRODUCT-SERVICE-DEV
+                  uri: lb://PRODUCT-SERVICE
                   predicates:
-                      - Path=/api/product/**
+                        - Path=/api/product/**
     config:
         import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/dev-config
+#    main:
+#        allow-bean-definition-overriding: true
+    security:
+        oauth2:
+            client:
+                provider:
+                    my-client:
+                        issuerUri: http://localhost:7800/realms/poc-realm
+                registration:
+                    my-client:
+                        authorizationGrantType: authorization_code
+                        clientId: my-client
+                        clientSecret: TGyd7N71m6iDpkeh78rQ178pqZE8bm6U
+                        redirectUri: http://localhost:9000/login/oauth2/code/my-client
+                        scope:
+                            - openid
+                            - profile
+                            - email
+                            - roles
+                            - offline_access
+            resourceserver:
+                jwt:
+                    issuer-uri: http://localhost:7800/realms/poc-realm
+                    jwk-set-uri: http://localhost:7800/realms/poc-realm/protocol/openid-connect/certs
+                opaquetoken:
+                    client-id: my-client
+                    client-secret: TGyd7N71m6iDpkeh78rQ178pqZE8bm6U
+                    introspection-uri: http://localhost:7800/realms/poc-realm/protocol/openid-connect/token/introspect
+
+jwt:
+    auth:
+        converter:
+            principle-attribute: preferred_username
+            resource-id: my-client
 
 

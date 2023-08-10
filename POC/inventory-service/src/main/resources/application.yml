@@ -1,0 +1,52 @@
+server:
+    port: 0
+spring:
+    application:
+        name: INVENTORY-SERVICE
+    cloud:
+        consul:
+            config:
+                enabled: true
+            discovery:
+                instance-id: ${spring.application.name}:${random.value}
+                prefer-ip-address: true
+            host: localhost
+            port: 7200
+    config:
+        import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/dev-config
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        password: test@1234
+        url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/inventory_service
+        username: root
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+    security:
+        oauth2:
+            #            client:
+            #                provider:
+            #                    my-client:
+            #                        issuerUri: http://localhost:7800/realms/poc-realm
+            #                registration:
+            #                    my-client:
+            #                        authorizationGrantType: authorization_code
+            #                        clientId: my-client
+            #                        clientSecret: TGyd7N71m6iDpkeh78rQ178pqZE8bm6U
+            #                        redirectUri: http://localhost:9000/login/oauth2/code/my-client
+            #                        scope:
+            #                            - openid
+            #                            - profile
+            #                            - email
+            #                            - roles
+            #                            - offline_access
+            resourceserver:
+                jwt:
+                    issuer-uri: http://localhost:7800/realms/poc-realm
+                    jwk-set-uri: http://localhost:7800/realms/poc-realm/protocol/openid-connect/certs
+                opaquetoken:
+                    client-id: my-client
+                    client-secret: TGyd7N71m6iDpkeh78rQ178pqZE8bm6U
+                    introspection-uri: http://localhost:7800/realms/poc-realm/protocol/openid-connect/token/introspect
+

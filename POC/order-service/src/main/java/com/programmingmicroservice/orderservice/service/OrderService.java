@@ -9,11 +9,9 @@ import com.programmingmicroservice.orderservice.model.OrderLineItems;
 import com.programmingmicroservice.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.extern.slf4j.XSlf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriBuilder;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -32,7 +30,7 @@ public class OrderService {
 
     private final WebClient.Builder webClientBuilder;
 
-    public void placeOrder(OrderRequest orderRequest){
+    public void placeOrder(OrderRequest orderRequest,String authorization){
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderLineItems> orderLineItemsList = orderRequest.getOrderLineItemsDtoList().stream().map(
@@ -54,10 +52,12 @@ public class OrderService {
         InventoryResponse[] inventoryResponses = webClientBuilder.build().get()
                 .uri("http://INVENTORY-SERVICE/api/inventory",
                         uriBuilder -> {
-                            URI builtURI = uriBuilder.queryParam("skuCode", skuCodes).build();
+                            URI builtURI = uriBuilder.queryParam("skuCode", skuCodes)
+                                    .build();
                             log.info("Web-client uri {}",builtURI.toString());
                             return builtURI;
                 })
+                .headers(httpHeaders -> httpHeaders.add("Authorization",authorization))
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
                 .block();
@@ -95,4 +95,18 @@ public class OrderService {
                 }
         ).collect(Collectors.toList());
     }
+
+
+
+//    ExchangeFilterFunction urlModifyingFilter = (clientRequest, nextFilter) -> {
+//        String token = null;
+//        if(this.manager!=null) {
+//            OAuth2AuthorizedClient authorize = this.manager.authorize(OAuth2AuthorizeRequest.withClientRegistrationId("my-client").principal("internal").build());
+//
+//            token = authorize.getAccessToken().getTokenValue();
+//            if (token != null)
+//                clientRequest.headers().add("Authorization", "Bearer " + token);
+//        }
+//        return nextFilter.exchange(clientRequest);
+//    };
 }

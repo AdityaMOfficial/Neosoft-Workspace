@@ -6,6 +6,7 @@ import com.programmingmicro.productservice.model.Product;
 import com.programmingmicro.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ public class ProductService {
     }
 
     public List<ProductResponse> getAllProducts() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        log.info("Email id :: {}",authentication.getPrincipal());
         List<Product> products = productRepository.findAll();
         List<ProductResponse> productResponseList = products.stream().map(product -> {
             return ProductResponse.builder()
