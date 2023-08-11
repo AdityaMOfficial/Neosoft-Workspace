@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +31,7 @@ public class OrderService {
 
     private final WebClient.Builder webClientBuilder;
 
-    public void placeOrder(OrderRequest orderRequest,String authorization){
+    public String placeOrder(OrderRequest orderRequest, String authorization){
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderLineItems> orderLineItemsList = orderRequest.getOrderLineItemsDtoList().stream().map(
@@ -67,8 +68,10 @@ public class OrderService {
         boolean allProductsInStock = Arrays.stream(inventoryResponses)
                 .allMatch(InventoryResponse::getIsInStock);
 
-        if(allProductsInStock)
+        if(allProductsInStock) {
             orderRepository.save(order);
+            return "Order placed successfully";
+        }
         else
             throw new IllegalArgumentException("Product is not in stock");
     }

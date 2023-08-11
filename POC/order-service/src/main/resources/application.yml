@@ -47,3 +47,48 @@ spring:
                     client-secret: TGyd7N71m6iDpkeh78rQ178pqZE8bm6U
                     introspection-uri: http://localhost:7800/realms/poc-realm/protocol/openid-connect/token/introspect
 
+management:
+    health:
+        circuit-breakers:
+            enabled: true
+    endpoints:
+      web:
+        exposure:
+          include:
+              - '*'
+    endpoint:
+      health:
+        show-details: always
+
+resilience4j.circuitbreaker:
+    instances:
+        inventory:
+            registerHealthIndicator: true
+            event-consumer-buffer-size: 10
+            slidingWindowType: COUNT_BASED  #will count the failed calls and success calls
+            slidingWindowSize: 5
+            permittedNumberOfCallsInHalfOpenState: 3
+#            slidingWindowType: TIME_BASED
+#            minimumNumberOfCalls: 20
+            waitDurationInOpenState: 5s   #only wait for 5s in open state and go back to closed
+            failureRateThreshold: 50   #50%
+            automaticTransitionFromOpenToHalfOpenEnabled: true
+#            eventConsumerBufferSize: 10
+#            recordFailurePredicate: io.github.robwin.exception.RecordFailurePredicate
+
+
+#timeout properties
+#resilience4j:
+#  timelimiter:
+#    instances:
+#      inventory:
+#          timeoutDuration: 3s
+
+
+#resilience4j retry properties
+#resilience4j:
+#  retry:
+#    instances:
+#      inventory:
+#          maxAttempts: 3
+#          waitDuration: 5s
