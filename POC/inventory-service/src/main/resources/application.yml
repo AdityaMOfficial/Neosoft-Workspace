@@ -50,3 +50,15 @@ spring:
                     client-secret: TGyd7N71m6iDpkeh78rQ178pqZE8bm6U
                     introspection-uri: http://localhost:7800/realms/poc-realm/protocol/openid-connect/token/introspect
 
+
+tracing:
+    url: http://10.0.61.255:4318/v1/traces
+
+management:
+    tracing:
+        sampling:
+            probability: 1.0
+
+logging:
+    pattern:
+        level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

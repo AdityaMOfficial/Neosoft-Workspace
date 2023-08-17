@@ -1,0 +1,46 @@
+server:
+  port: 9500
+spring:
+  application:
+    name: NOTIFICATION-SERVICE
+  kafka:
+    consumer:
+      group-id: notificationId
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: com.programmingmicroservice.orderservice.events
+#            type:
+#              mapping: event:com.programmingmicroservice.notification.models.OrderPlacedEvent
+
+#    template:
+#      default-topic: notificationTopic
+    bootstrap-servers: localhost:9094
+  cloud:
+    consul:
+      config:
+        enabled: true
+      discovery:
+        instance-id: ${spring.application.name}:${random.value}
+        prefer-ip-address: true
+      host: localhost
+      port: 7200
+  config:
+    import: optional:consul:${spring.cloud.consul.host}:${spring.cloud.consul.port}/dev-config
+
+
+
+tracing:
+  url: http://10.0.61.255:4318/v1/traces
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

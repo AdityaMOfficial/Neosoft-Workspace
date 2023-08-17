@@ -2,6 +2,8 @@ package com.programmingmicroservice.inventoryservice;
 
 import com.programmingmicroservice.inventoryservice.model.Inventory;
 import com.programmingmicroservice.inventoryservice.repository.InventoryRepository;
+import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,4 +31,11 @@ public class InventoryServiceApplication {
 //			inventoryRepository.save(inventory1);
 //		};
 //	}
+
+	@Bean
+	OtlpHttpSpanExporter otlpHttpSpanExporter(@Value("${tracing.url}") String url) {
+		return OtlpHttpSpanExporter.builder()
+				.setEndpoint(url)
+				.build();
+	}
 }
